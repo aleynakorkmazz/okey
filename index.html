@@ -3,172 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>4 Kişilik Klasik Okey</title>
+    <title>Etkileşimli Klasik Okey</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #1b5e20; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: white; }
 
-        body {
-            background-color: #1b5e20; /* Koyu Okey Yeşili */
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            color: white;
-        }
-
-        /* Üst Bölüm: Rakipler */
-        #opponents-container {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            height: 15%;
-        }
-
-        .opponent {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            width: 30%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            font-size: 0.9rem;
-        }
+        /* Üst Bölüm: Rakipler ve Çöpleri */
+        #opponents-container { display: flex; justify-content: space-between; padding: 15px; background: rgba(0, 0, 0, 0.3); height: 20%; align-items: flex-start; }
         
-        .opponent .tas-sayisi { font-weight: bold; color: #ffeb3b; margin-top: 5px; }
+        .opponent-area { display: flex; flex-direction: column; align-items: center; width: 30%; gap: 5px; }
+        .opponent { background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; text-align: center; width: 100%; font-size: 0.9rem; border: 2px solid transparent; transition: 0.3s; }
+        .opponent.aktif { border-color: #4CAF50; background: rgba(76, 175, 80, 0.3); box-shadow: 0 0 10px #4CAF50; }
+        .opponent .tas-sayisi { font-weight: bold; color: #ffeb3b; margin-top: 5px; display: block; }
 
+        /* Atılan Taş (Çöp) Alanları */
+        .discard-pile { width: 35px; height: 50px; background: rgba(0,0,0,0.2); border: 2px dashed #aaa; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        
         /* Orta Bölüm: Masa (Deste ve Gösterge) */
-        #table-center {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            flex-direction: column;
-        }
+        #table-center { flex: 1; display: flex; justify-content: center; align-items: center; gap: 20px; flex-direction: column; position: relative; }
+        .center-tiles { display: flex; gap: 20px; align-items: flex-end; }
+        .deck-area { text-align: center; }
 
-        .center-tiles {
-            display: flex;
-            gap: 15px;
-        }
-
-        .deck-area {
-            text-align: center;
-        }
+        /* Bildirim Paneli */
+        #bilgi-mesaji { background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 15px; font-size: 0.9rem; color: #ffeb3b; margin-bottom: 10px; min-height: 25px; }
 
         /* Okey Taşı Genel Tasarımı */
-        .tile {
-            background-color: #fcfcfc;
-            border-radius: 6px;
-            width: 10vw;
-            max-width: 45px;
-            height: 65px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.4rem;
-            font-weight: bold;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
-            border: 1px solid #ddd;
-            user-select: none;
-            background-image: linear-gradient(to bottom, #ffffff, #e0e0e0);
-        }
-
-        .tile.kapali {
-            background-image: linear-gradient(to bottom, #8b5a2b, #5c3a18);
-            border: 1px solid #3e2723;
-            color: transparent;
-        }
-
-        .color-sari { color: #d4a017; }
-        .color-mavi { color: #0f52ba; }
-        .color-siyah { color: #212121; }
-        .color-kirmizi { color: #d32f2f; }
-        .sahte-okey { color: #333; font-size: 1rem; }
+        .tile { background-color: #fcfcfc; border-radius: 6px; width: 9vw; max-width: 40px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.4); border: 1px solid #ddd; user-select: none; background-image: linear-gradient(to bottom, #ffffff, #e0e0e0); cursor: pointer; transition: transform 0.1s; }
+        .tile:active { transform: translateY(-5px); } /* Tıklama efekti */
+        .tile.kapali { background-image: linear-gradient(to bottom, #8b5a2b, #5c3a18); border: 1px solid #3e2723; color: transparent; cursor: pointer; }
+        
+        /* Taş Renkleri */
+        .color-sari { color: #d4a017; } .color-mavi { color: #0f52ba; } .color-siyah { color: #212121; } .color-kirmizi { color: #d32f2f; } .sahte-okey { color: #333; font-size: 1rem; }
 
         /* Alt Bölüm: Oyuncu Istakası */
-        #rack-container {
-            height: 35%;
-            background-color: #5d4037;
-            border-top: 6px solid #3e2723;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            justify-content: center;
-        }
+        #rack-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 35%; padding-bottom: 10px; }
+        #senin-copun { margin-bottom: 30px; } /* Sağ tarafa atacağın taş alanı */
+        #rack-container { flex: 1; background-color: #5d4037; border-top: 6px solid #3e2723; padding: 10px; display: flex; flex-direction: column; gap: 5px; justify-content: center; border-radius: 10px 10px 0 0; max-width: 90%; transition: 0.3s; }
+        .rack-row { display: flex; justify-content: center; gap: 2px; height: 45%; }
+        .aktif-istaka { box-shadow: 0 -5px 15px rgba(76, 175, 80, 0.5); }
 
-        .rack-row {
-            display: flex;
-            justify-content: center;
-            gap: 3px;
-            height: 45%;
-        }
-
-        /* Butonlar */
-        .controls { margin-top: 20px; }
-        button {
-            padding: 12px 24px; font-size: 1rem; font-weight: bold;
-            background-color: #ff9800; color: white; border: none;
-            border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        button:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        button { padding: 12px 24px; font-size: 1rem; font-weight: bold; background-color: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 10; }
     </style>
 </head>
 <body>
 
-    <!-- Rakipler -->
+    <!-- Rakipler ve Attıkları Taşlar (Çöpler) -->
     <div id="opponents-container">
-        <div class="opponent" id="bot-left">Sol Oyuncu <span class="tas-sayisi">0 Taş</span></div>
-        <div class="opponent" id="bot-top">Üst Oyuncu <span class="tas-sayisi">0 Taş</span></div>
-        <div class="opponent" id="bot-right">Sağ Oyuncu <span class="tas-sayisi">0 Taş</span></div>
+        <!-- Sol Oyuncu (Buradan taş çekebilirsin) -->
+        <div class="opponent-area">
+            <div class="opponent" id="oyuncu-3">Sol Bot <span class="tas-sayisi">14 Taş</span></div>
+            <div class="discard-pile" id="cop-sol" onclick="yandanCek()">Boş</div>
+        </div>
+        <!-- Üst Oyuncu -->
+        <div class="opponent-area">
+            <div class="opponent" id="oyuncu-2">Üst Bot <span class="tas-sayisi">14 Taş</span></div>
+            <div class="discard-pile" id="cop-ust">Boş</div>
+        </div>
+        <!-- Sağ Oyuncu (Senin attığın taşı bu alabilir) -->
+        <div class="opponent-area">
+            <div class="opponent" id="oyuncu-1">Sağ Bot <span class="tas-sayisi">14 Taş</span></div>
+            <div class="discard-pile" id="cop-sag">Boş</div>
+        </div>
     </div>
 
     <!-- Orta Masa -->
     <div id="table-center">
+        <div id="bilgi-mesaji">Oyun bekleniyor...</div>
         <div class="center-tiles">
             <div class="deck-area">
-                <div class="tile kapali" id="kalan-deste"></div>
-                <div style="margin-top: 10px; font-size: 0.9rem;" id="kalan-sayi">Kalan: 106</div>
+                <div class="tile kapali" id="kalan-deste" onclick="ortadanCek()"></div>
+                <div style="margin-top: 5px; font-size: 0.8rem;" id="kalan-sayi">Kalan: 106</div>
             </div>
             <div class="deck-area">
                 <div class="tile" id="gosterge-tasi">?</div>
-                <div style="margin-top: 10px; font-size: 0.9rem;">Gösterge</div>
+                <div style="margin-top: 5px; font-size: 0.8rem;">Gösterge</div>
             </div>
         </div>
-        <div class="controls">
-            <button onclick="oyunuBaslat()">Oyunu Başlat</button>
-        </div>
+        <button id="baslat-btn" onclick="oyunuBaslat()" style="position: absolute; bottom: -20px;">Oyunu Başlat</button>
     </div>
 
-    <!-- Senin Istakan -->
-    <div id="rack-container">
-        <div class="rack-row" id="rack-row-1"></div>
-        <div class="rack-row" id="rack-row-2"></div>
+    <!-- Senin Istakan ve Sağdaki Çöp Kutusun -->
+    <div id="rack-wrapper">
+        <div id="rack-container">
+            <div class="rack-row" id="rack-row-1"></div>
+            <div class="rack-row" id="rack-row-2"></div>
+        </div>
+        <div class="discard-pile" id="senin-copun" style="display:none;">Boş</div>
     </div>
 
     <script>
         const renkler = ['sari', 'mavi', 'siyah', 'kirmizi'];
         let deste = [];
-        let oyuncular = {
-            sen: [],
-            sag: 0,
-            ust: 0,
-            sol: 0
-        };
-        let gosterge = null;
+        let oyuncular = { sen: [], sag: 14, ust: 14, sol: 14 };
+        let copler = { sen: [], sag: [], ust: [], sol: [] }; // Atılan taşlar
+        
         let gercekOkey = null;
+        let aktifOyuncu = -1; // 0: Sen, 1: Sağ, 2: Üst, 3: Sol
+        let ilkTur = true; 
 
         function desteOlustur() {
             deste = [];
-            for (let set = 0; set < 2; set++) {
-                renkler.forEach(renk => {
-                    for (let sayi = 1; sayi <= 13; sayi++) {
-                        deste.push({ sayi: sayi, renk: renk, tip: 'normal' });
-                    }
-                });
+            for (let i = 0; i < 2; i++) {
+                renkler.forEach(renk => { for (let s = 1; s <= 13; s++) deste.push({ sayi: s, renk: renk, tip: 'normal' }); });
             }
             deste.push({ sayi: 'S.O', renk: 'siyah', tip: 'sahte' });
             deste.push({ sayi: 'S.O', renk: 'kirmizi', tip: 'sahte' });
@@ -181,81 +117,153 @@
             }
         }
 
-        function gostergeBelirle() {
-            // Destenin en altından rastgele bir taş gösterge olur (sahte okey olamaz)
+        function taslariDagit() {
             let index = deste.findIndex(t => t.tip === 'normal');
-            gosterge = deste.splice(index, 1)[0]; 
+            let gosterge = deste.splice(index, 1)[0]; 
+            gercekOkey = { sayi: gosterge.sayi === 13 ? 1 : gosterge.sayi + 1, renk: gosterge.renk };
             
-            // Gerçek Okey'i belirle (Göstergenin 1 fazlası, 13 ise 1 olur)
-            let okeySayi = gosterge.sayi === 13 ? 1 : gosterge.sayi + 1;
-            gercekOkey = { sayi: okeySayi, renk: gosterge.renk };
+            document.getElementById('gosterge-tasi').className = `tile color-${gosterge.renk}`;
+            document.getElementById('gosterge-tasi').innerText = gosterge.sayi;
 
-            // Göstergeyi ekrana çiz
-            const gostergeEl = document.getElementById('gosterge-tasi');
-            gostergeEl.className = `tile color-${gosterge.renk}`;
-            gostergeEl.innerText = gosterge.sayi;
+            oyuncular.sen = deste.splice(0, 15);
+            deste.splice(0, 42); // 14*3 bot taşları silinir
+
+            istakayiSirala();
         }
 
-        function taslariDagit() {
-            // Başlayan sensin (15 taş), diğerleri 14 taş alır. Gösterge ayrıldığı için desteden çekiyoruz.
-            oyuncular.sen = deste.splice(0, 15);
-            oyuncular.sag = 14;
-            oyuncular.ust = 14;
-            oyuncular.sol = 14; deste.splice(0, 42); // Rakiplerin taşlarını desteden siliyoruz (arka planda botların elinde sayılır)
-
-            // Kendi taşlarını sırala
+        function istakayiSirala() {
             oyuncular.sen.sort((a, b) => {
-                if(a.tip === 'sahte') return 1;
-                if(b.tip === 'sahte') return -1;
+                if(a.tip === 'sahte') return 1; if(b.tip === 'sahte') return -1;
                 if(a.renk !== b.renk) return a.renk.localeCompare(b.renk);
                 return a.sayi - b.sayi;
             });
         }
 
-        function ekraniGuncelle() {
-            // Rakiplerin taş sayılarını güncelle
-            document.querySelector('#bot-right .tas-sayisi').innerText = oyuncular.sag + " Taş";
-            document.querySelector('#bot-top .tas-sayisi').innerText = oyuncular.ust + " Taş";
-            document.querySelector('#bot-left .tas-sayisi').innerText = oyuncular.sol + " Taş";
+        // --- YENİ EKLENEN OYUN DÖNGÜSÜ MANTIĞI ---
 
-            // Kalan deste sayısını güncelle
+        function turuGecir() {
+            aktifOyuncu++;
+            if(aktifOyuncu > 3) aktifOyuncu = 0;
+            ekraniGuncelle();
+
+            if (aktifOyuncu === 0) {
+                // Senin sıran
+                if(ilkTur) {
+                    mesajGoster("Sıra sizde! (15 taşınız var, çekmeden doğrudan taş atın)");
+                } else {
+                    mesajGoster("Sıra sizde! Ortadan veya solunuzdaki çöpten taş çekin.");
+                }
+            } else {
+                mesajGoster("Bot oynuyor...");
+                setTimeout(() => botOyna(aktifOyuncu), 1500); // 1.5 saniye bekleme
+            }
+        }
+
+        function ortadanCek() {
+            if (aktifOyuncu !== 0 || oyuncular.sen.length >= 15 || deste.length === 0) return;
+            oyuncular.sen.push(deste.pop());
+            istakayiSirala();
+            mesajGoster("Ortadan taş çektiniz. Şimdi bir taş atın.");
+            ekraniGuncelle();
+        }
+
+        function yandanCek() {
+            if (aktifOyuncu !== 0 || oyuncular.sen.length >= 15 || copler.sol.length === 0) return;
+            oyuncular.sen.push(copler.sol.pop());
+            istakayiSirala();
+            mesajGoster("Yandan taş çektiniz. Şimdi bir taş atın.");
+            ekraniGuncelle();
+        }
+
+        function tasAt(index) {
+            // Sadece senin sıran ve elinde 15 taş varken (çekme işlemi yapılmışsa veya ilk tursa) atabilirsin
+            if (aktifOyuncu !== 0 || oyuncular.sen.length < 15) {
+                alert("Önce taş çekmelisiniz!");
+                return;
+            }
+
+            let atilanTas = oyuncular.sen.splice(index, 1)[0];
+            copler.sen.push(atilanTas);
+            ilkTur = false; // İlk tur atışını yaptın
+            
+            ekraniGuncelle();
+            turuGecir(); // Sırayı bot'a devret
+        }
+
+        function botOyna(botId) {
+            // Bot basitçe ortadan çeker ve rastgele bir taş atar (Görsel Simülasyon)
+            if (deste.length > 0) deste.pop();
+            
+            // Bot'un rastgele atacağı sahte taş üretimi
+            let rastgeleTas = { sayi: Math.floor(Math.random()*13)+1, renk: renkler[Math.floor(Math.random()*4)], tip: 'normal' };
+            
+            if (botId === 1) copler.sag.push(rastgeleTas);
+            if (botId === 2) copler.ust.push(rastgeleTas);
+            if (botId === 3) copler.sol.push(rastgeleTas);
+
+            turuGecir(); // Sırayı sonrakine devret
+        }
+
+        // --- EKRAN GÜNCELLEME VE YARDIMCI FONKSİYONLAR ---
+
+        function mesajGoster(mesaj) {
+            document.getElementById('bilgi-mesaji').innerText = mesaj;
+        }
+
+        function copGuncelle(id, dizi) {
+            let kutu = document.getElementById(id);
+            if(dizi.length > 0) {
+                let sonTas = dizi[dizi.length - 1];
+                kutu.className = "discard-pile tile color-" + sonTas.renk;
+                kutu.innerText = sonTas.sayi;
+                kutu.style.border = "1px solid #ddd";
+            } else {
+                kutu.className = "discard-pile";
+                kutu.innerText = "Boş";
+                kutu.style.border = "2px dashed #aaa";
+            }
+        }
+
+        function ekraniGuncelle() {
             document.getElementById('kalan-sayi').innerText = "Kalan: " + deste.length;
 
-            // Istakanı çiz
+            // Sıra kimdeyse onun kutusunu yak
+            document.getElementById('rack-container').classList.toggle('aktif-istaka', aktifOyuncu === 0);
+            for(let i=1; i<=3; i++) {
+                document.getElementById('oyuncu-'+i).classList.toggle('aktif', aktifOyuncu === i);
+            }
+
+            // Çöpleri güncelle
+            document.getElementById('senin-copun').style.display = 'flex';
+            copGuncelle('senin-copun', copler.sen);
+            copGuncelle('cop-sag', copler.sag);
+            copGuncelle('cop-ust', copler.ust);
+            copGuncelle('cop-sol', copler.sol);
+
+            // Istakayı çiz
             const row1 = document.getElementById('rack-row-1');
             const row2 = document.getElementById('rack-row-2');
             row1.innerHTML = ''; row2.innerHTML = '';
 
             oyuncular.sen.forEach((tas, index) => {
                 const tasEl = document.createElement('div');
+                tasEl.className = tas.tip === 'normal' ? `tile color-${tas.renk}` : `tile sahte-okey`;
+                tasEl.innerText = tas.tip === 'normal' ? tas.sayi : 'S.O';
+                if(tas.tip === 'normal' && tas.sayi === gercekOkey.sayi && tas.renk === gercekOkey.renk) tasEl.style.border = "2px solid gold";
                 
-                if(tas.tip === 'normal') {
-                    tasEl.className = `tile color-${tas.renk}`;
-                    tasEl.innerText = tas.sayi;
-                } else {
-                    tasEl.className = `tile sahte-okey`;
-                    tasEl.innerText = 'S.O';
-                }
+                // Taşa tıklanınca atma fonksiyonunu çağır
+                tasEl.onclick = () => tasAt(index);
 
-                // Eğer taş Okey ise belirteç ekle (opsiyonel görsel geliştirme)
-                if(tas.tip === 'normal' && tas.sayi === gercekOkey.sayi && tas.renk === gercekOkey.renk) {
-                    tasEl.style.border = "2px solid gold";
-                }
-
-                if (index < 8) row1.appendChild(tasEl);
-                else row2.appendChild(tasEl);
+                if (index < 8) row1.appendChild(tasEl); else row2.appendChild(tasEl);
             });
         }
 
         function oyunuBaslat() {
-            desteOlustur();
-            desteyiKaristir();
-            gostergeBelirle();
-            taslariDagit();
-            ekraniGuncelle();
+            document.getElementById('baslat-btn').style.display = 'none';
+            desteOlustur(); desteyiKaristir(); taslariDagit();
             
-            // Başlat butonunu gizle
-            document.querySelector('.controls').style.display = 'none';
+            aktifOyuncu = -1; // -1'den başlatıp turuGecir ile 0 (Sana) alıyoruz.
+            turuGecir(); 
         }
     </script>
 </body>
