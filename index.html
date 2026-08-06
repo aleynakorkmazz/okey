@@ -2,19 +2,13 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <!-- Mobil cihazlar için ekran ölçeklendirmesi (Uygulama hissi verir) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobil Okey Prototipi</title>
+    <title>4 Kişilik Klasik Okey</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
-            background-color: #2c7a2c; /* Okey masası yeşili */
+            background-color: #1b5e20; /* Koyu Okey Yeşili */
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -22,27 +16,83 @@
             color: white;
         }
 
-        #game-board {
+        /* Üst Bölüm: Rakipler */
+        #opponents-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            height: 15%;
+        }
+
+        .opponent {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+        .opponent .tas-sayisi { font-weight: bold; color: #ffeb3b; margin-top: 5px; }
+
+        /* Orta Bölüm: Masa (Deste ve Gösterge) */
+        #table-center {
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 20px;
             flex-direction: column;
         }
 
-        .info-panel {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .center-tiles {
+            display: flex;
+            gap: 15px;
+        }
+
+        .deck-area {
             text-align: center;
         }
 
-        /* Istaka Tasarımı */
+        /* Okey Taşı Genel Tasarımı */
+        .tile {
+            background-color: #fcfcfc;
+            border-radius: 6px;
+            width: 10vw;
+            max-width: 45px;
+            height: 65px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+            border: 1px solid #ddd;
+            user-select: none;
+            background-image: linear-gradient(to bottom, #ffffff, #e0e0e0);
+        }
+
+        .tile.kapali {
+            background-image: linear-gradient(to bottom, #8b5a2b, #5c3a18);
+            border: 1px solid #3e2723;
+            color: transparent;
+        }
+
+        .color-sari { color: #d4a017; }
+        .color-mavi { color: #0f52ba; }
+        .color-siyah { color: #212121; }
+        .color-kirmizi { color: #d32f2f; }
+        .sahte-okey { color: #333; font-size: 1rem; }
+
+        /* Alt Bölüm: Oyuncu Istakası */
         #rack-container {
-            height: 30%;
-            background-color: #8b5a2b; /* Ahşap ıstaka rengi */
-            border-top: 5px solid #5c3a18;
+            height: 35%;
+            background-color: #5d4037;
+            border-top: 6px solid #3e2723;
             padding: 10px;
             display: flex;
             flex-direction: column;
@@ -53,62 +103,47 @@
         .rack-row {
             display: flex;
             justify-content: center;
-            gap: 2px;
+            gap: 3px;
             height: 45%;
         }
 
-        /* Okey Taşı Tasarımı */
-        .tile {
-            background-color: #fcfcfc;
-            border-radius: 5px;
-            width: 8vw;
-            max-width: 40px;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-            border: 1px solid #ddd;
-            user-select: none;
-        }
-
-        /* Taş Renkleri */
-        .color-sari { color: #d4a017; }
-        .color-mavi { color: #0000ff; }
-        .color-siyah { color: #000000; }
-        .color-kirmizi { color: #ff0000; }
-        .sahte-okey { color: #222; font-size: 1rem; }
-
+        /* Butonlar */
+        .controls { margin-top: 20px; }
         button {
-            padding: 10px 20px;
-            font-size: 1rem;
-            background-color: #ff9800;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            padding: 12px 24px; font-size: 1rem; font-weight: bold;
+            background-color: #ff9800; color: white; border: none;
+            border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        
-        button:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-    <div id="game-board">
-        <div class="info-panel">
-            <h2>Geleneksel Okey</h2>
-            <p id="status-text">Oyuna başlamak için taşları dağıtın.</p>
-        </div>
-        <button onclick="oyunuBaslat()">Taşları Dağıt</button>
+    <!-- Rakipler -->
+    <div id="opponents-container">
+        <div class="opponent" id="bot-left">Sol Oyuncu <span class="tas-sayisi">0 Taş</span></div>
+        <div class="opponent" id="bot-top">Üst Oyuncu <span class="tas-sayisi">0 Taş</span></div>
+        <div class="opponent" id="bot-right">Sağ Oyuncu <span class="tas-sayisi">0 Taş</span></div>
     </div>
 
-    <!-- Oyuncunun Istakası (İki satırlı) -->
+    <!-- Orta Masa -->
+    <div id="table-center">
+        <div class="center-tiles">
+            <div class="deck-area">
+                <div class="tile kapali" id="kalan-deste"></div>
+                <div style="margin-top: 10px; font-size: 0.9rem;" id="kalan-sayi">Kalan: 106</div>
+            </div>
+            <div class="deck-area">
+                <div class="tile" id="gosterge-tasi">?</div>
+                <div style="margin-top: 10px; font-size: 0.9rem;">Gösterge</div>
+            </div>
+        </div>
+        <div class="controls">
+            <button onclick="oyunuBaslat()">Oyunu Başlat</button>
+        </div>
+    </div>
+
+    <!-- Senin Istakan -->
     <div id="rack-container">
         <div class="rack-row" id="rack-row-1"></div>
         <div class="rack-row" id="rack-row-2"></div>
@@ -117,12 +152,17 @@
     <script>
         const renkler = ['sari', 'mavi', 'siyah', 'kirmizi'];
         let deste = [];
-        let oyuncuIstaka = [];
+        let oyuncular = {
+            sen: [],
+            sag: 0,
+            ust: 0,
+            sol: 0
+        };
+        let gosterge = null;
+        let gercekOkey = null;
 
-        // 106 Taşlık Okey Destesini Oluştur
         function desteOlustur() {
             deste = [];
-            // Her renkten 1-13 arası taşlardan 2'şer set
             for (let set = 0; set < 2; set++) {
                 renkler.forEach(renk => {
                     for (let sayi = 1; sayi <= 13; sayi++) {
@@ -130,12 +170,10 @@
                     }
                 });
             }
-            // 2 adet Sahte Okey ekle
             deste.push({ sayi: 'S.O', renk: 'siyah', tip: 'sahte' });
             deste.push({ sayi: 'S.O', renk: 'kirmizi', tip: 'sahte' });
         }
 
-        // Desteyi Karıştır (Fisher-Yates Algoritması)
         function desteyiKaristir() {
             for (let i = deste.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -143,52 +181,81 @@
             }
         }
 
-        // Istakayı Ekrana Çiz
-        function istakayiCiz() {
-            const row1 = document.getElementById('rack-row-1');
-            const row2 = document.getElementById('rack-row-2');
+        function gostergeBelirle() {
+            // Destenin en altından rastgele bir taş gösterge olur (sahte okey olamaz)
+            let index = deste.findIndex(t => t.tip === 'normal');
+            gosterge = deste.splice(index, 1)[0]; 
             
-            row1.innerHTML = '';
-            row2.innerHTML = '';
+            // Gerçek Okey'i belirle (Göstergenin 1 fazlası, 13 ise 1 olur)
+            let okeySayi = gosterge.sayi === 13 ? 1 : gosterge.sayi + 1;
+            gercekOkey = { sayi: okeySayi, renk: gosterge.renk };
 
-            oyuncuIstaka.forEach((tas, index) => {
-                const tasElementi = document.createElement('div');
-                tasElementi.classList.add('tile');
-                
-                if(tas.tip === 'normal') {
-                    tasElementi.classList.add(`color-${tas.renk}`);
-                    tasElementi.innerText = tas.sayi;
-                } else {
-                    tasElementi.classList.add('sahte-okey');
-                    tasElementi.innerText = '🍀'; // Sahte okey sembolü
-                }
+            // Göstergeyi ekrana çiz
+            const gostergeEl = document.getElementById('gosterge-tasi');
+            gostergeEl.className = `tile color-${gosterge.renk}`;
+            gostergeEl.innerText = gosterge.sayi;
+        }
 
-                // Taşları iki satıra bölüştür (Üstte 7, altta 8 taş gibi)
-                if (index < 7) {
-                    row1.appendChild(tasElementi);
-                } else {
-                    row2.appendChild(tasElementi);
-                }
+        function taslariDagit() {
+            // Başlayan sensin (15 taş), diğerleri 14 taş alır. Gösterge ayrıldığı için desteden çekiyoruz.
+            oyuncular.sen = deste.splice(0, 15);
+            oyuncular.sag = 14;
+            oyuncular.ust = 14;
+            oyuncular.sol = 14; deste.splice(0, 42); // Rakiplerin taşlarını desteden siliyoruz (arka planda botların elinde sayılır)
+
+            // Kendi taşlarını sırala
+            oyuncular.sen.sort((a, b) => {
+                if(a.tip === 'sahte') return 1;
+                if(b.tip === 'sahte') return -1;
+                if(a.renk !== b.renk) return a.renk.localeCompare(b.renk);
+                return a.sayi - b.sayi;
             });
         }
 
-        // Oyunu Başlat
+        function ekraniGuncelle() {
+            // Rakiplerin taş sayılarını güncelle
+            document.querySelector('#bot-right .tas-sayisi').innerText = oyuncular.sag + " Taş";
+            document.querySelector('#bot-top .tas-sayisi').innerText = oyuncular.ust + " Taş";
+            document.querySelector('#bot-left .tas-sayisi').innerText = oyuncular.sol + " Taş";
+
+            // Kalan deste sayısını güncelle
+            document.getElementById('kalan-sayi').innerText = "Kalan: " + deste.length;
+
+            // Istakanı çiz
+            const row1 = document.getElementById('rack-row-1');
+            const row2 = document.getElementById('rack-row-2');
+            row1.innerHTML = ''; row2.innerHTML = '';
+
+            oyuncular.sen.forEach((tas, index) => {
+                const tasEl = document.createElement('div');
+                
+                if(tas.tip === 'normal') {
+                    tasEl.className = `tile color-${tas.renk}`;
+                    tasEl.innerText = tas.sayi;
+                } else {
+                    tasEl.className = `tile sahte-okey`;
+                    tasEl.innerText = 'S.O';
+                }
+
+                // Eğer taş Okey ise belirteç ekle (opsiyonel görsel geliştirme)
+                if(tas.tip === 'normal' && tas.sayi === gercekOkey.sayi && tas.renk === gercekOkey.renk) {
+                    tasEl.style.border = "2px solid gold";
+                }
+
+                if (index < 8) row1.appendChild(tasEl);
+                else row2.appendChild(tasEl);
+            });
+        }
+
         function oyunuBaslat() {
             desteOlustur();
             desteyiKaristir();
+            gostergeBelirle();
+            taslariDagit();
+            ekraniGuncelle();
             
-            // Oyuncuya 15 taş ver (Başlayan oyuncu olduğunu varsayıyoruz)
-            oyuncuIstaka = deste.splice(0, 15);
-            
-            // Kolaylık olsun diye sayılarına göre sırala
-            oyuncuIstaka.sort((a, b) => {
-                if(a.tip === 'sahte') return 1;
-                if(b.tip === 'sahte') return -1;
-                return a.sayi - b.sayi;
-            });
-
-            istakayiCiz();
-            document.getElementById('status-text').innerText = "Taşlar dağıtıldı! Kalan taş: " + deste.length;
+            // Başlat butonunu gizle
+            document.querySelector('.controls').style.display = 'none';
         }
     </script>
 </body>
