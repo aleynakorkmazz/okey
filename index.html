@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <!-- Mobil cihazlar için ekran ölçeklendirmesi (Uygulama hissi verir) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobil Okey Prototipi</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #2c7a2c; /* Okey masası yeşili */
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        #game-board {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .info-panel {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Istaka Tasarımı */
+        #rack-container {
+            height: 30%;
+            background-color: #8b5a2b; /* Ahşap ıstaka rengi */
+            border-top: 5px solid #5c3a18;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .rack-row {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            height: 45%;
+        }
+
+        /* Okey Taşı Tasarımı */
+        .tile {
+            background-color: #fcfcfc;
+            border-radius: 5px;
+            width: 8vw;
+            max-width: 40px;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            border: 1px solid #ddd;
+            user-select: none;
+        }
+
+        /* Taş Renkleri */
+        .color-sari { color: #d4a017; }
+        .color-mavi { color: #0000ff; }
+        .color-siyah { color: #000000; }
+        .color-kirmizi { color: #ff0000; }
+        .sahte-okey { color: #222; font-size: 1rem; }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-board">
+        <div class="info-panel">
+            <h2>Geleneksel Okey</h2>
+            <p id="status-text">Oyuna başlamak için taşları dağıtın.</p>
+        </div>
+        <button onclick="oyunuBaslat()">Taşları Dağıt</button>
+    </div>
+
+    <!-- Oyuncunun Istakası (İki satırlı) -->
+    <div id="rack-container">
+        <div class="rack-row" id="rack-row-1"></div>
+        <div class="rack-row" id="rack-row-2"></div>
+    </div>
+
+    <script>
+        const renkler = ['sari', 'mavi', 'siyah', 'kirmizi'];
+        let deste = [];
+        let oyuncuIstaka = [];
+
+        // 106 Taşlık Okey Destesini Oluştur
+        function desteOlustur() {
+            deste = [];
+            // Her renkten 1-13 arası taşlardan 2'şer set
+            for (let set = 0; set < 2; set++) {
+                renkler.forEach(renk => {
+                    for (let sayi = 1; sayi <= 13; sayi++) {
+                        deste.push({ sayi: sayi, renk: renk, tip: 'normal' });
+                    }
+                });
+            }
+            // 2 adet Sahte Okey ekle
+            deste.push({ sayi: 'S.O', renk: 'siyah', tip: 'sahte' });
+            deste.push({ sayi: 'S.O', renk: 'kirmizi', tip: 'sahte' });
+        }
+
+        // Desteyi Karıştır (Fisher-Yates Algoritması)
+        function desteyiKaristir() {
+            for (let i = deste.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deste[i], deste[j]] = [deste[j], deste[i]];
+            }
+        }
+
+        // Istakayı Ekrana Çiz
+        function istakayiCiz() {
+            const row1 = document.getElementById('rack-row-1');
+            const row2 = document.getElementById('rack-row-2');
+            
+            row1.innerHTML = '';
+            row2.innerHTML = '';
+
+            oyuncuIstaka.forEach((tas, index) => {
+                const tasElementi = document.createElement('div');
+                tasElementi.classList.add('tile');
+                
+                if(tas.tip === 'normal') {
+                    tasElementi.classList.add(`color-${tas.renk}`);
+                    tasElementi.innerText = tas.sayi;
+                } else {
+                    tasElementi.classList.add('sahte-okey');
+                    tasElementi.innerText = '🍀'; // Sahte okey sembolü
+                }
+
+                // Taşları iki satıra bölüştür (Üstte 7, altta 8 taş gibi)
+                if (index < 7) {
+                    row1.appendChild(tasElementi);
+                } else {
+                    row2.appendChild(tasElementi);
+                }
+            });
+        }
+
+        // Oyunu Başlat
+        function oyunuBaslat() {
+            desteOlustur();
+            desteyiKaristir();
+            
+            // Oyuncuya 15 taş ver (Başlayan oyuncu olduğunu varsayıyoruz)
+            oyuncuIstaka = deste.splice(0, 15);
+            
+            // Kolaylık olsun diye sayılarına göre sırala
+            oyuncuIstaka.sort((a, b) => {
+                if(a.tip === 'sahte') return 1;
+                if(b.tip === 'sahte') return -1;
+                return a.sayi - b.sayi;
+            });
+
+            istakayiCiz();
+            document.getElementById('status-text').innerText = "Taşlar dağıtıldı! Kalan taş: " + deste.length;
+        }
+    </script>
+</body>
+</html>
